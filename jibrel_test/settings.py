@@ -119,7 +119,6 @@ STATIC_URL = '/static/'
 
 
 CURRENCY_SET = {'BTC', 'ETH', 'XRP', 'LTC', 'ZEC'}
-INIT_CURRENCY_ON_APP_START = os.getenv('INIT_CURRENCY_ON_APP_START')
 DEBUG = os.getenv('DEBUG')
 
 # ~~~ S E C R E T S ~~~
