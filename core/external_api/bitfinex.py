@@ -1,8 +1,12 @@
+import logging
 from dataclasses import dataclass
 from typing import List
 from urllib.parse import urljoin
 
 import requests
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -38,6 +42,9 @@ class BitfinexAPI:
         }
 
         r = requests.get(url, params=params)
+
+        logger.info(r.url)
+
         r.raise_for_status()
 
         raw_candles = r.json()

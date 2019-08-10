@@ -1,8 +1,12 @@
+import logging
 from datetime import datetime
 
 from core.constants import currensy_to_bitfinex_symbol_mapping
 from core.external_api import bitfinex_api
 from core.models import Currency, Rate
+
+
+logger = logging.getLogger(__name__)
 
 
 class UpdateRate:
@@ -11,7 +15,7 @@ class UpdateRate:
         now_ts = datetime.utcnow().timestamp() * 1000
         days_10_ago_ts = now_ts - days_10_ts
 
-        for currency in Currency.objects.only('id').all():
+        for currency in Currency.objects.all():
             last_rate = Rate.objects.only('date').filter(currency_id=currency.id).last()
 
             # Загружаем все недостающие данные либо с момента "10 дней назад",
@@ -19,6 +23,8 @@ class UpdateRate:
             # в зависимости от того, какой момент ближе к текущей временной точке.
             after = max(days_10_ago_ts, last_rate.date if last_rate else 0)
             candles = self.obtain_all(currensy_to_bitfinex_symbol_mapping[currency.name], '1m', after=after)
+
+            logger.info(f'obtained for {currency.name}: {len(candles)}')
 
             Rate.objects.bulk_create([Rate(
                 rate=candle.close,
@@ -33,7 +39,6 @@ class UpdateRate:
     @staticmethod
     def obtain_all(symbol, time_frame, section='hist', after=None):
         # Загружаем курсы до тех пор, пока есть что грузить (лимит на 1 запрос - 5000 записей)
-        # Число актуальных записей ~=15к
         all_obtained = False
         result = []
 
